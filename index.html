@@ -32,8 +32,8 @@
           if (!row.lat || !row.lng) return;
 
           // 写真URLが空でなければ <img> を組み込む
-          const photoHtml = row.photo
-            ? `<br><img src="${row.photo}" alt="${row.name}" style="width:200px;max-height:150px;object-fit:cover;">`
+          const photoHtml = row.image_url
+            ? `<br><img src="${row.image_url}" alt="${row.name}" style="width:200px;max-height:150px;object-fit:cover;">`
             : "";
 
           const popupHtml = `
