@@ -57,21 +57,21 @@
 
 <script>
   // --- モーダル操作関数 ---
-function showModal(data) {
-  const modal = document.getElementById('modal');
-  modal.style.display = 'block';
+  function showModal(title, desc, imgUrl) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = desc;
+    const img = document.getElementById('modal-img');
+    img.src = imgUrl || '';
+    img.style.display = imgUrl ? 'block' : 'none';
+    document.getElementById('modal').style.display = 'block';
+  }
 
-  document.getElementById('modal-title').textContent = data.name;
-  
-  // HTMLで複数情報を表示
-  document.getElementById('modal-desc').innerHTML = `
-    <p>${data.name}</p>
-  `;
+  function hideModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
 
-  const img = document.getElementById('modal-img');
-  img.src = data.image_url || '';
-  img.style.display = data.image_url ? 'block' : 'none';
-}
+  document.querySelector('.close-btn').onclick = hideModal;
+  document.getElementById('modal').onclick = e => { if(e.target.id==='modal') hideModal(); };
 
   // --- Leaflet 地図初期化 ---
   const map = L.map('map').setView([35.681, 139.767], 6); // 東京中心
@@ -80,7 +80,7 @@ function showModal(data) {
   }).addTo(map);
 
   // --- Googleスプレッドシート CSV URL ---
-  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-NSLyWom17kid2wIQhPnm0Gm1PVn4V7URAqqJyr_DAwotpb5LqoG3dgukSErErFqcYY3cE3X-FYDH/pub?gid=1615166941&single=true&output=csv";
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
 
   Papa.parse(SHEET_URL, {
     download: true,
