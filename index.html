@@ -59,11 +59,11 @@
 
 <script>
 // --- モーダル操作関数 ---
-  function showModal(title, desc, imgUrl) {
+  function showModal(title, adress, desc, category2, imgUrl) {
     document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-desc').textContent = adress;
+    document.getElementById('modal-adress').textContent = adress;
     document.getElementById('modal-desc').textContent = desc;
-    document.getElementById('modal-desc').textContent = category2;
+    document.getElementById('modal-category2').textContent = category2;
     
     const img = document.getElementById('modal-img');
     img.src = imgUrl || '';
