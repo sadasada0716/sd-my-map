@@ -57,21 +57,24 @@
 
 <script>
   // --- モーダル操作関数 ---
-  function showModal(title, desc, imgUrl) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-desc').textContent = desc;
-    const img = document.getElementById('modal-img');
-    img.src = imgUrl || '';
-    img.style.display = imgUrl ? 'block' : 'none';
-    document.getElementById('modal').style.display = 'block';
-  }
+function showModal(data) {
+  const modal = document.getElementById('modal');
+  modal.style.display = 'block';
 
-  function hideModal() {
-    document.getElementById('modal').style.display = 'none';
-  }
+  document.getElementById('modal-title').textContent = data.name;
+  
+  // HTMLで複数情報を表示
+  document.getElementById('modal-desc').innerHTML = `
+    <p><strong>カテゴリ:</strong> ${data.category}</p>
+    <p><strong>住所:</strong> ${data.address}</p>
+    <p>${data.desc}</p>
+    ${data.website ? `<p><a href="${data.website}" target="_blank">公式サイト</a></p>` : ''}
+  `;
 
-  document.querySelector('.close-btn').onclick = hideModal;
-  document.getElementById('modal').onclick = e => { if(e.target.id==='modal') hideModal(); };
+  const img = document.getElementById('modal-img');
+  img.src = data.image_url || '';
+  img.style.display = data.image_url ? 'block' : 'none';
+}
 
   // --- Leaflet 地図初期化 ---
   const map = L.map('map').setView([35.681, 139.767], 6); // 東京中心
