@@ -32,19 +32,26 @@
   // ③ GoogleシートCSVを取得 → JSON化 → マーカー描画
   Papa.parse(SHEET_URL, {
     download: true,
-    header: true,   // 1行目をキー名として扱う
+    header: true,
     complete: function(results) {
+      const customIcon = L.icon({
+        iconUrl: 'img/pin2.png',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+      });
+
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lng = parseFloat(row.lng);
         if (!isNaN(lat) && !isNaN(lng)) {
-          L.marker([lat, lng])
+          L.marker([lat, lng], { icon: customIcon })
             .addTo(map)
             .bindPopup(`<b>${row.name}</b><br>${row.desc}`);
         }
       });
     }
-  });
-</script>
+  }); 
+  </script>
 </body>
 </html>
