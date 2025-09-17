@@ -57,27 +57,24 @@
 
 <script>
   // --- モーダル操作関数 ---
-  function showModal(title, desc, imgUrl) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-desc').textContent = desc;
-    const img = document.getElementById('modal-img');
-    img.src = imgUrl || '';
-    img.style.display = imgUrl ? 'block' : 'none';
-    document.getElementById('modal').style.display = 'block';
-  }
+function showModal(data) {
+  const modal = document.getElementById('modal');
+  modal.style.display = 'block';
 
-  function hideModal() {
-    document.getElementById('modal').style.display = 'none';
-  }
+  document.getElementById('modal-title').textContent = data.name;
+  
+  // HTMLで複数情報を表示
+  document.getElementById('modal-desc').innerHTML = `
+    <p><strong>カテゴリ:</strong> ${data.category}</p>
+    <p><strong>住所:</strong> ${data.address}</p>
+    <p>${data.desc}</p>
+    ${data.website ? `<p><a href="${data.website}" target="_blank">公式サイト</a></p>` : ''}
+  `;
 
-  document.querySelector('.close-btn').onclick = hideModal;
-  document.getElementById('modal').onclick = e => { if(e.target.id==='modal') hideModal(); };
-
-  // --- Leaflet 地図初期化 ---
-  const map = L.map('map').setView([35.681, 139.767], 6); // 東京中心
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+  const img = document.getElementById('modal-img');
+  img.src = data.image_url || '';
+  img.style.display = data.image_url ? 'block' : 'none';
+}
 
   // --- Googleスプレッドシート CSV URL ---
   const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
