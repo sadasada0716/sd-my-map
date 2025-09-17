@@ -1,53 +1,62 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>東京消防署マップ</title>
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- PapaParse -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<meta charset="utf-8">
+<title>東京消防署マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  body { margin:0; padding:0; }
+  #map { height:90vh; width:100%; }
+</style>
 </head>
 <body>
-  <h1>東京消防署マップ</h1>
-  <div id="map"></div>
+<h1 style="text-align:center;margin:10px;">東京消防署マップ</h1>
+<div id="map"></div>
 
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?output=csv";
+<script>
+const sheetUrl = "https://docs.google.com/spreadsheets/d/【スプレッドシートID】/pub?output=csv";
 
-    const map = L.map('map').setView([35.68, 139.76], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+// ▼ 地図本体
+const map = L.map('map').setView([35.68, 139.76], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-    Papa.parse(sheetUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        results.data.forEach(row => {
-          if (!row.lat || !row.lng) return;
+// ▼ ここで複数アイコンを定義
+const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
+const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
+const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
 
-          // 写真URLが空でなければ <img> を組み込む
-          const photoHtml = row.image_url
-            ? `<br><img src="${row.image_url}" alt="${row.name}" style="width:200px;max-height:150px;object-fit:cover;">`
-            : "";
+// ▼ CSV読み込み
+Papa.parse(sheetUrl, {
+  download: true,
+  header: true,
+  complete: function(results) {
 
-          const popupHtml = `
-            <b>${row.name}</b><br>
-            ${row.address}
-            ${photoHtml}
-          `;
+    // ★ この中で条件分岐を行い、マーカーを追加
+    results.data.forEach(row => {
+      if (!row.lat || !row.lng) return;
 
-          L.marker([parseFloat(row.lat), parseFloat(row.lng)])
-            .addTo(map)
-            .bindPopup(popupHtml);
-        });
-      }
+      // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
+      let iconChoice = redIcon; // デフォルト
+      if (row.icon === "blue")  iconChoice = blueIcon;
+      if (row.icon === "green") iconChoice = greenIcon;
+
+      const popupHtml = `
+        <b>${row.name}</b><br>
+        ${row.address}<br>
+        ${photoHtml}
+      `;
+
+      // ▼ icon プロパティをここで渡す
+      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
+        .addTo(map)
+        .bindPopup(popupHtml);
     });
-  </script>
+  }
+});
+</script>
 </body>
 </html>
