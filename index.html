@@ -64,15 +64,12 @@ function showModal(data) {
   document.getElementById('modal-title').textContent = data.name;
   
   // HTMLで複数情報を表示
-  document.getElementById('modal-desc').innerHTML = `
-    <p><strong>:</strong> ${data.name}</p>
-    <p><strong>住所:</strong> ${data.address}</p>
-    <p>${data.desc}</p>
-  `;
+document.getElementById('modal-desc').innerHTML = `
+  ${data.address  ? `<p><strong>住所:</strong> ${data.address}</p>` : ''}
+  <p>${data.desc || ''}</p>
+  ${data.website  ? `<p><a href="${data.website}" target="_blank">公式サイト</a></p>` : ''}
+`;
 
-  const img = document.getElementById('modal-img');
-  img.src = data.image_url || '';
-  img.style.display = data.image_url ? 'block' : 'none';
 }
 
   // --- Leaflet 地図初期化 ---
