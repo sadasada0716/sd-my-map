@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Googleシート × Leaflet</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- PapaParse（CSV → JSON変換用） -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    #map { height: 100vh; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script>
+  // ① 自分のスプレッドシートの「ウェブに公開」CSVリンクに差し替える
+  const SHEET_URL =
+    "https://docs.google.com/spreadsheets/d/【シートID】/pub?output=csv";
+
+  // ② 地図を初期化
+  const map = L.map('map').setView([35.681, 139.767], 6); // 東京中心
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // ③ GoogleシートCSVを取得 → JSON化 → マーカー描画
+  Papa.parse(SHEET_URL, {
+    download: true,
+    header: true,   // 1行目をキー名として扱う
+    complete: function(results) {
+      results.data.forEach(row => {
+        const lat = parseFloat(row.lat);
+        const lng = parseFloat(row.lng);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup(`<b>${row.name}</b><br>${row.desc}`);
+        }
+      });
+    }
+  });
+</script>
+</body>
+</html>
