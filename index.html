@@ -1,116 +1,41 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>地図 + モーダル表示サンプル</title>
+  <meta charset="utf-8">
+  <title>東京消防署マップ</title>
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- PapaParse（CSV → JSON用） -->
+  <!-- PapaParse (CSVパーサー) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
-  <style>
-    body, html { margin:0; padding:0; height:100%; }
-    #map { height: 100%; }
-
-    /* モーダル */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left:0; top:0;
-      width:100%; height:100%;
-      background-color: rgba(0,0,0,0.6);
-    }
-    .modal-content {
-      background: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      width: 80%;
-      max-width: 500px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    .close-btn {
-      float: right;
-      font-size: 28px;
-      cursor: pointer;
-    }
-    #modal-img { max-width:100%; height:auto; margin-top:10px; }
-  </style>
 </head>
 <body>
+  <h1>東京消防署マップ</h1>
+  <div id="map"></div>
 
-<div id="map"></div>
+  <script>
+    // ★ ここに取得したCSV公開URLを貼り付け
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?output=csv";
 
-<!-- モーダル -->
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn">&times;</span>
-    <h2 id="modal-title"></h2>
-    <p id="modal-desc"></p>
-    <p id="modal-adress"></p>
-    <img id="modal-img" src="" alt="">
-  </div>
-</div>
+    const map = L.map('map').setView([35.68, 139.76], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-<script>
-// --- モーダル操作関数 ---
-  function showModal(title, desc, adress, imgUrl) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-desc').textContent = desc;
-    document.getElementById('modal-adress').textContent = adress;
-    
-    const img = document.getElementById('modal-img');
-    img.src = imgUrl || '';
-    img.style.display = imgUrl ? 'block' : 'none';
-    document.getElementById('modal').style.display = 'block';
-  }
-
-  function hideModal() {
-    document.getElementById('modal').style.display = 'none';
-  }
-
-  document.querySelector('.close-btn').onclick = hideModal;
-  document.getElementById('modal').onclick = e => { if(e.target.id==='modal') hideModal(); };
-  
-  // --- Leaflet 地図初期化 ---
-  const map = L.map('map').setView([35.681, 139.767], 6); // 東京中心
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  // --- Googleスプレッドシート CSV URL ---
-  const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
-
-  Papa.parse(SHEET_URL, {
-    download: true,
-    header: true,
-    complete: function(results) {
-      // カスタムアイコン
-      const customIcon = L.icon({
-        iconUrl: 'img/pin2.png', // リポジトリ内画像パス
-        iconSize: [40,40],
-        iconAnchor: [20,40],
-        popupAnchor: [0,-40]
-      });
-
-      results.data.forEach(row => {
-        const lat = parseFloat(row.lat);
-        const lng = parseFloat(row.lng);
-        if(!isNaN(lat) && !isNaN(lng)) {
-          const marker = L.marker([lat,lng], {icon:customIcon}).addTo(map);
-
-          // クリックでモーダル表示
-          marker.on('click', () => {
-            showModal(row.name, row.desc, row.image_url);
-          });
-        }
-      });
-    }
-  });
-</script>
+    Papa.parse(sheetUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        results.data.forEach(row => {
+          if (!row.lat || !row.lng) return;
+          const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)]).addTo(map);
+          marker.bindPopup(`<b>${row.name}</b><br>${row.address}`);
+        });
+      }
+    });
+  </script>
 </body>
 </html>
