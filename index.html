@@ -13,14 +13,9 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁_1733</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁_1817</h1>
 <div id="map"></div>
 
-<!-- モーダル -->
-<div id="photoModal">
-  <img id="modalImg" src="" alt="vehicle photo">
-</div>  
-  
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
 
@@ -90,11 +85,37 @@ Papa.parse(sheetUrl, {
       L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
         .addTo(map)
         .bindPopup(popupHtml);
+      
+      const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
+  .addTo(map)
+  .bindPopup(popupHtml);
+      
+      // ★ ポップアップが開いたときにクリックイベントを設定
+      marker.on('popupopen', function(e) {
+        const badges = document.querySelectorAll('.vehicle-badge');
+        badges.forEach(b => {
+          b.addEventListener('click', function() {
+            const photo = this.dataset.photo;
+            if (!photo) return;
+            document.getElementById('modalImg').src = "photo/" + photo;
+            document.getElementById('photoModal').style.display = "flex";
+          });
+        });
+      });
     });
   }
 });
-
+  
+// モーダルを閉じる処理
+document.getElementById('photoModal').addEventListener('click', function() {
+  this.style.display = 'none';
+});
+  
 </script>
-
+  
+<!-- モーダル -->
+<div id="photoModal">
+  <img id="modalImg" src="" alt="vehicle photo">
+</div>
 </body>
 </html>
