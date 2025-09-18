@@ -18,42 +18,21 @@
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
 
-// ▼ 地図本体
-const map = L.map('map').setView([35.68, 139.76], 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+const map = L.map('map').setView([35.68,139.76],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// ▼ ここで複数アイコンを定義
-const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
-const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
-const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
+const redIcon = L.icon({ iconUrl:'icons/red.png', iconSize:[32,32], iconAnchor:[16,32] });
 
-// ▼ CSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
   header: true,
-  complete: function(results) {
-
-    // ★ この中で条件分岐を行い、マーカーを追加
+  complete: function(results){
+    console.log(results.data); // ←まずここで読み込み結果を確認
     results.data.forEach(row => {
-      if (!row.lat || !row.lng) return;
-
-      // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
-      let iconChoice = redIcon; // デフォルト
-      if (row.icon === "blue")  iconChoice = blueIcon;
-      if (row.icon === "green") iconChoice = greenIcon;
-
-      const popupHtml = `
-        <b>${row.name}</b><br>
-        ${row.address}<br>
-        ${photoHtml}
-      `;
-
-      // ▼ icon プロパティをここで渡す
-      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
-        .addTo(map)
-        .bindPopup(popupHtml);
+      if(!row.lat || !row.lng) return; // 座標が無い行はスキップ
+      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: redIcon })
+       .addTo(map)
+       .bindPopup(`<b>${row.name}</b><br>${row.address}`);
     });
   }
 });
