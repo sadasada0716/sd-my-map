@@ -60,6 +60,25 @@ Papa.parse(sheetUrl, {
         ? vehicles.map(v => `<span class="vehicle-badge">${v}</span>`).join(' ')
         : '<p>車両登録なし</p>';
       
+      
+      // --- ここでタイプを判定 ---
+      let type = 'normal';  // デフォルト色
+
+      // 頭文字やキーワードによる分類例
+      if (num.startsWith('A')) {          // 例: Eから始まる → 緊急車
+        type = 'emergency';
+      } else if (num.includes('R')) {     // 例: Rを含む → 救助車
+        type = 'rescue';
+      } else if (num.match(/^\d{2}-FD/)) {// 正規表現 → 「00-FD」で始まる
+        type = 'firedept';
+      }
+
+      // data-type属性を付与
+      vehicleBadges.push(
+        `<span class="vehicle-badge" data-type="${type}">${num}</span>`
+      );
+      
+      
       // --- ポップアップHTML ---
       const popupHtml = `
         <div style="width:200px">
@@ -67,7 +86,6 @@ Papa.parse(sheetUrl, {
           <p style="margin:4px 0;">
             <strong></strong> ${row.address}<br>
             <strong>配置車両</strong>
-            ${vehicleList}
           </p>
           <div class="vehicle-badge-box">${vehicleList}</div>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}

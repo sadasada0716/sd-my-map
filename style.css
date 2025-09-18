@@ -13,21 +13,29 @@
   gap: 6px; /* バッジ間の余白 */
 }
 
-/* バッジ自体のデザイン */
 .vehicle-badge {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 20px;     /* 丸み */
-  background: #0078ff;     /* 背景色（青系） */
-  color: #fff;             /* 文字色 */
-  font-weight: bold;
-  font-size: 13px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* 影で浮かせる */
-  white-space: nowrap;     /* 折り返し防止 */
-  cursor: default;
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:20px;
+  background:#0078ff;   /* ← default( normal ) */
+  color:#fff;
+  font-weight:bold;
+  font-size:13px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.2);
+  white-space:nowrap;
 }
 
-/* 例: 種類別カラーをつけたい場合（ナンバーの頭文字で判定） */
+/* 救急車 */
 .vehicle-badge[data-type="emergency"] {
-  background: #e53935;
+  background:#e53935;   /* 赤 */
+}
+
+/* 救助車両 */
+.vehicle-badge[data-type="rescue"] {
+  background:#f57c00;   /* オレンジ */
+}
+
+/* ポンプ車 */
+.vehicle-badge[data-type="firedept"] {
+  background:#4caf50;   /* 青 */
 }
