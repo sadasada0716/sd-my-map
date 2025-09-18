@@ -48,7 +48,7 @@ Papa.parse(sheetUrl, {
 
       // 🔹 車両ナンバー列をまとめる
       const vehicles = [];
-      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5'].forEach(col => {
+      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5''vehicle6','vehicle7','vehicle8','vehicle9','vehicle10'].forEach(col => {
         if (row[col] && row[col].trim() !== '') {
           vehicles.push(row[col].trim());
         }
@@ -65,7 +65,7 @@ Papa.parse(sheetUrl, {
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:4px 0;">
             <strong>住所:</strong> ${row.address}<br>
-            <strong>車両ナンバー</strong>
+            <strong>配置車両</strong>
             ${vehicleList}
           </p>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
