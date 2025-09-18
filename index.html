@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防署maps</h1>
+<h1 style="text-align:center;margin:10px;">東京消防署mapss</h1>
 <div id="map"></div>
 
 <script>
@@ -25,16 +25,31 @@ const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor
 const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
 const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
 
+// ▼ CSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
   header: true,
-  complete: function(results){
-    console.log(results.data); // ←まずここで読み込み結果を確認
+  complete: function(results) {
+
+    // ★ この中で条件分岐を行い、マーカーを追加
     results.data.forEach(row => {
-      if(!row.lat || !row.lng) return; // 座標が無い行はスキップ
-      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: redIcon })
-       .addTo(map)
-       .bindPopup(`<b>${row.name}</b><br>${row.address}`);
+      if (!row.lat || !row.lng) return;
+
+      // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
+      let iconChoice = redIcon; // デフォルト
+      if (row.icon === "blue")  iconChoice = blueIcon;
+      if (row.icon === "green") iconChoice = greenIcon;
+
+      const popupHtml = `
+        <b>${row.name}</b><br>
+        ${row.address}<br>
+        ${row.tel ? `☎ ${row.tel}` : ""}
+      `;
+
+      // ▼ icon プロパティをここで渡す
+      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
+        .addTo(map)
+        .bindPopup(popupHtml);
     });
   }
 });
