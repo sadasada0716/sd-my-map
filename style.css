@@ -40,6 +40,11 @@
   background:#ff00cc;   /* ピンク */
 }
 
+/* トラック重機車両 */
+.vehicle-badge[data-type="track"] {
+  background:#663300;   /* ブラウン */
+}
+
 /* ポンプ車両 */
 .vehicle-badge[data-type="pomp"] {
   background:#0033ff;   /* 青 */
@@ -49,6 +54,12 @@
 .vehicle-badge[data-type="chemical"] {
   background:#00cc33;   /* 緑 */
 }
+
+/* 指揮車両 */
+.vehicle-badge[data-type="yd"] {
+  background:#666666;   /* 灰色 */
+}
+
 
 /* ポンプ車 */
 .vehicle-badge[data-type="firedept"] {
