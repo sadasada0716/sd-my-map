@@ -35,29 +35,30 @@ Papa.parse(sheetUrl, {
   header: true,
   complete: function(results) {
 
-    // ★ この中で条件分岐を行い、マーカーを追加
-    results.data.forEach(row => {
-      if (!row.lat || !row.lng) return;
+  // ★ この中で条件分岐を行い、マーカーを追加
+  results.data.forEach(row => {
+    if (!row.lat || !row.lng) return;
 
-      // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
-      let iconChoice = redIcon; // デフォルト
-      if (row.icon === "blue")  iconChoice = blueIcon;
-      if (row.icon === "green") iconChoice = greenIcon;
-      if (row.icon === "orange") iconChoice = orangeIcon;
-      if (row.icon === "hqr") iconChoice = hqrIcon;
-      if (row.icon === "hpr") iconChoice = hprIcon;
+  // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
+  let iconChoice = redIcon; // デフォルト
+  if (row.icon === "blue")  iconChoice = blueIcon;
+  if (row.icon === "green") iconChoice = greenIcon;
+  if (row.icon === "orange") iconChoice = orangeIcon;
+  if (row.icon === "hqr") iconChoice = hqrIcon;
+  if (row.icon === "hpr") iconChoice = hprIcon;
 
-// 🔹 車両ナンバー列をまとめる＆色分け
-const vehicles = [];
-['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
+    
+  // 🔹 車両ナンバー列をまとめる＆色分け
+  const vehicles = [];
+  ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
   const raw = row[col];
   if (!raw || raw.trim() === '') return; // 空欄はスキップ
   const num = raw.trim();
 
-  // --- 頭文字でタイプ判定 ---
-  let type = 'normal'; // デフォルト
+  // 頭文字でタイプ判定（大文字に統一）
   const firstChar = num.charAt(0).toUpperCase(); // 大文字に統一
-  
+  let type = 'normal'; // デフォルト
+    
   // --- タイプ判定 ---
   if (firstChar === 'A') type = 'emergency';
   else if (firstChar === 'R') type = 'rescue';
