@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁_1720</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁_1733</h1>
 <div id="map"></div>
 
 <script>
@@ -22,75 +22,66 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyB
 const map = L.map('map').setView([35.68,139.76],11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
-const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
-const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
-const orangeIcon= L.icon({ iconUrl:'icons/orange.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
-const hqrIcon= L.icon({ iconUrl:'icons/hqr.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
-const hprIcon= L.icon({ iconUrl:'icons/hpr.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
-  
-// ▼ CSV読み込み
+const icons = {
+  red:    L.icon({ iconUrl:'icons/red.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  blue:   L.icon({ iconUrl:'icons/blue.png',   iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  green:  L.icon({ iconUrl:'icons/green.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  orange: L.icon({ iconUrl:'icons/orange.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  hqr:    L.icon({ iconUrl:'icons/hqr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  hpr:    L.icon({ iconUrl:'icons/hpr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
+};
+
 Papa.parse(sheetUrl, {
   download: true,
   header: true,
   complete: function(results) {
+    results.data.forEach(row => {
+      if (!row.lat || !row.lng) return;
 
-  // ★ この中で条件分岐を行い、マーカーを追加
-  results.data.forEach(row => {
-    if (!row.lat || !row.lng) return;
+      const iconChoice = icons[row.icon] || icons.red;
 
-  // 例: スプレッドシートに「icon」列を作成（値は red / blue / green など）
-  let iconChoice = redIcon; // デフォルト
-  if (row.icon === "blue")  iconChoice = blueIcon;
-  if (row.icon === "green") iconChoice = greenIcon;
-  if (row.icon === "orange") iconChoice = orangeIcon;
-  if (row.icon === "hqr") iconChoice = hqrIcon;
-  if (row.icon === "hpr") iconChoice = hprIcon;
+      // ▼ 車両バッジ作成（ここで data-photo を埋め込む）
+      const vehicles = [];
+      for (let i = 1; i <= 20; i++) {
+        const num = (row[`vehicle${i}`] || '').trim();
+        if (!num) continue;
 
-    
-  // 🔹 車両ナンバー列をまとめる＆色分け
-  const vehicles = [];
-  ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
-  const raw = row[col];
-  if (!raw || raw.trim() === '') return; // 空欄はスキップ
-  const num = raw.trim();
+        // 対応する写真列を読む
+        const photo = (row[`vehicle${i}_photo`] || '').trim();
 
-  // 頭文字でタイプ判定（大文字に統一）
-  const firstChar = num.charAt(0).toUpperCase(); // 大文字に統一
-  let type = 'normal'; // デフォルト
-    
-  // --- タイプ判定 ---
-  if (firstChar === 'A') type = 'emergency';
-  else if (firstChar === 'R') type = 'rescue';
-  else if (firstChar === 'P') type = 'pomp';
-  else if (firstChar === 'C') type = 'chemical';
-  else if (firstChar === 'S') type = 'support';
-  else if (firstChar === 'Y') type = 'yd';
-  else if (firstChar === 'T') type = 'track';
-  else if (/^\d{2}-FD/.test(num)) type = 'firedept';
+        // タイプ判定
+        const first = num.charAt(0).toUpperCase();
+        let type = 'normal';
+        if (first === 'A') type = 'emergency';
+        else if (first === 'R') type = 'rescue';
+        else if (first === 'P') type = 'pomp';
+        else if (first === 'C') type = 'chemical';
+        else if (first === 'S') type = 'support';
+        else if (first === 'Y') type = 'yd';
+        else if (first === 'T') type = 'track';
+        else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
-  // バッジHTMLを作成
-  vehicles.push(`<span class="vehicle-badge" data-type="${type}">${num}</span>`);
-});
+        // ここで data-photo を設定
+        vehicles.push(
+          `<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`
+        );
+      }
 
-// 🔹 vehicleList に結合
-const vehicleList = vehicles.length
-  ? vehicles.join(' ')
-  : '<p>車両登録なし</p>';      
-      // --- ポップアップHTML ---
+      const vehicleList = vehicles.length ? vehicles.join(' ') : '<p>車両登録なし</p>';
+
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:4px 0;">
-            <strong></strong> ${row.address}<br>
+            ${row.address}<br>
             <strong>配置車両</strong>
           </p>
           <div class="vehicle-badge-box">${vehicleList}</div>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
-          ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
+          ${row.desc  ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
-      // ▼ icon プロパティをここで渡す
+
       L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
         .addTo(map)
         .bindPopup(popupHtml);
@@ -98,31 +89,27 @@ const vehicleList = vehicles.length
   }
 });
 
+// ▼ バッジクリックでモーダル表示
 map.on('popupopen', function(e) {
   const popupEl = e.popup.getElement();
   popupEl.querySelectorAll('.vehicle-badge').forEach(badge => {
     badge.addEventListener('click', () => {
       const photoUrl = badge.dataset.photo;
       if (photoUrl) {
-        // 例: シンプルなモーダルで写真を表示
         const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = 0;
-        modal.style.left = 0;
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.background = 'rgba(0,0,0,0.6)';
-        modal.style.display = 'flex';
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'center';
+        Object.assign(modal.style, {
+          position:'fixed',top:0,left:0,width:'100%',height:'100%',
+          background:'rgba(0,0,0,0.6)',display:'flex',
+          justifyContent:'center',alignItems:'center'
+        });
         modal.innerHTML = `<img src="photo/${photoUrl}" style="max-width:90%;max-height:90%;border:4px solid #fff;border-radius:8px;">`;
         modal.addEventListener('click', () => modal.remove());
         document.body.appendChild(modal);
       }
     });
   });
-});  
-  
+});
 </script>
+
 </body>
 </html>
