@@ -46,13 +46,26 @@ Papa.parse(sheetUrl, {
       if (row.icon === "hqr") iconChoice = hqrIcon;
       if (row.icon === "hpr") iconChoice = hprIcon;
 
-// --- ポップアップHTML ---
+      // 🔹 車両ナンバー列をまとめる
+      const vehicles = [];
+      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5'].forEach(col => {
+        if (row[col] && row[col].trim() !== '') {
+          vehicles.push(row[col].trim());
+        }
+      });
+
+      // 🔹 HTMLリスト化
+      const vehicleList = vehicles.length
+        ? '<ul>' + vehicles.map(v => `<li>${v}</li>`).join('') + '</ul>'
+        : '<p>車両登録なし</p>';
+      
+      // --- ポップアップHTML ---
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:4px 0;">
             <strong>住所:</strong> ${row.address}<br>
-            <strong>:</strong> ${row.phone || '―'}
+            <strong>車両ナンバー</strong>
           </p>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
