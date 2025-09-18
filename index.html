@@ -24,7 +24,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
 const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
 const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
+const orangeIcon= L.icon({ iconUrl:'icons/orange.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
 
+  
 // ▼ CSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
