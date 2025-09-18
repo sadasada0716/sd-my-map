@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>東京消防署マップ</title>
+<title>東京消防庁マップ</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="style.css"/>  
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁mapsspy</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁_1720</h1>
 <div id="map"></div>
 
 <script>
@@ -98,6 +98,31 @@ const vehicleList = vehicles.length
   }
 });
 
+map.on('popupopen', function(e) {
+  const popupEl = e.popup.getElement();
+  popupEl.querySelectorAll('.vehicle-badge').forEach(badge => {
+    badge.addEventListener('click', () => {
+      const photoUrl = badge.dataset.photo;
+      if (photoUrl) {
+        // 例: シンプルなモーダルで写真を表示
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = 0;
+        modal.style.left = 0;
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.background = 'rgba(0,0,0,0.6)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.innerHTML = `<img src="photo/${photoUrl}" style="max-width:90%;max-height:90%;border:4px solid #fff;border-radius:8px;">`;
+        modal.addEventListener('click', () => modal.remove());
+        document.body.appendChild(modal);
+      }
+    });
+  });
+});  
+  
 </script>
 </body>
 </html>
