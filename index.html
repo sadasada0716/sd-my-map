@@ -47,38 +47,27 @@ Papa.parse(sheetUrl, {
       if (row.icon === "hqr") iconChoice = hqrIcon;
       if (row.icon === "hpr") iconChoice = hprIcon;
 
-      // 🔹 車両ナンバー列をまとめる
-      const vehicles = [];
-      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
-        if (row[col] && row[col].trim() !== '') {
-          vehicles.push(row[col].trim());
-        }
-      });
+// 🔹 車両ナンバー列をまとめる＆色分け
+const vehicles = [];
+['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
+  const raw = row[col];
+  if (!raw || raw.trim() === '') return; // 空欄はスキップ
+  const num = raw.trim();
 
-      // 🔹 HTMLリスト化
-      const vehicleList = vehicles.length
-        ? vehicles.map(v => `<span class="vehicle-badge">${v}</span>`).join(' ')
-        : '<p>車両登録なし</p>';
-      
-      
-      // --- ここでタイプを判定 ---
-      let type = 'normal';  // デフォルト色
+  // --- タイプ判定 ---
+  let type = 'normal'; // デフォルト色
+  if (num.startsWith('E')) type = 'emergency';
+  else if (num.includes('R')) type = 'rescue';
+  else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
-      // 頭文字やキーワードによる分類例
-      if (num.startsWith('A')) {          // 例: Eから始まる → 緊急車
-        type = 'emergency';
-      } else if (num.includes('R')) {     // 例: Rを含む → 救助車
-        type = 'rescue';
-      } else if (num.match(/^\d{2}-FD/)) {// 正規表現 → 「00-FD」で始まる
-        type = 'firedept';
-      }
+  // バッジHTMLを作成
+  vehicles.push(`<span class="vehicle-badge" data-type="${type}">${num}</span>`);
+});
 
-      // data-type属性を付与
-      vehicleBadges.push(
-        `<span class="vehicle-badge" data-type="${type}">${num}</span>`
-      );
-      
-      
+// 🔹 vehicleList に結合
+const vehicleList = vehicles.length
+  ? vehicles.join(' ')
+  : '<p>車両登録なし</p>';      
       // --- ポップアップHTML ---
       const popupHtml = `
         <div style="width:200px">
@@ -99,8 +88,7 @@ Papa.parse(sheetUrl, {
     });
   }
 });
-  
-console.log(results.data);  
+
 </script>
 </body>
 </html>
