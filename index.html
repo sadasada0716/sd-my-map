@@ -49,7 +49,7 @@ Papa.parse(sheetUrl, {
 
       // 🔹 車両ナンバー列をまとめる
       const vehicles = [];
-      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17'].forEach(col => {
+      ['vehicle1','vehicle2','vehicle3','vehicle4','vehicle5','vehicle6','vehicle7','vehicle8','vehicle9','vehicle10','vehicle11','vehicle12','vehicle13','vehicle14','vehicle15','vehicle16','vehicle17','vehicle18'].forEach(col => {
         if (row[col] && row[col].trim() !== '') {
           vehicles.push(row[col].trim());
         }
@@ -64,11 +64,10 @@ Papa.parse(sheetUrl, {
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
-          <p style="margin:4px 0;">
-            <strong></strong> ${row.address}<br>
-            <strong>配置車両</strong>
-            ${vehicleList}
-          </p>
+          <p><strong>住所:</strong> ${row.address}</p>
+
+          <div class="vehicle-badge-box">${vehicleBadges}</div>
+
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
