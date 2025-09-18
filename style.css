@@ -1,7 +1,33 @@
-body { margin:0; padding:0; }
-#map { height: 90vh; width: 100%; }
-h1 {
-  margin: 10px;
-  font-family: sans-serif;
-  text-align: center;
+/* ポップアップ全体の余白調整 */
+.popup-content {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 14px;
+  max-width: 240px;
+}
+
+/* バッジコンテナ */
+.vehicle-badge-box {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px; /* バッジ間の余白 */
+}
+
+/* バッジ自体のデザイン */
+.vehicle-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 20px;     /* 丸み */
+  background: #0078ff;     /* 背景色（青系） */
+  color: #fff;             /* 文字色 */
+  font-weight: bold;
+  font-size: 13px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* 影で浮かせる */
+  white-space: nowrap;     /* 折り返し防止 */
+  cursor: default;
+}
+
+/* 例: 種類別カラーをつけたい場合（ナンバーの頭文字で判定） */
+.vehicle-badge[data-type="emergency"] {
+  background: #e53935;
 }
