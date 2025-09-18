@@ -4,12 +4,39 @@
 <meta charset="utf-8">
 <title>東京消防庁マップ</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="style.css"/>  
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
   body { margin:0; padding:0; }
   #map { height:90vh; width:100%; }
+
+  /* ▼ モーダル表示用 */
+  #photoModal {
+    display: none;                /* 初期は非表示 */
+    position: fixed;              /* 画面に固定 */
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.7);  /* 半透明の黒背景 */
+    justify-content: center;      /* 中央寄せ */
+    align-items: center;
+    z-index: 99999;               /* 地図より前面 */
+  }
+  #photoModal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 20px #000;
+  }
+
+  /* 車両バッジの簡単な装飾（任意） */
+  .vehicle-badge {
+    display:inline-block;
+    margin:2px;
+    padding:2px 6px;
+    background:#eee;
+    border-radius:4px;
+    cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -31,7 +58,6 @@ const icons = {
   hpr:    L.icon({ iconUrl:'icons/hpr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
 };
 
-// ▼ GoogleシートCSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
   header: true,
@@ -46,20 +72,8 @@ Papa.parse(sheetUrl, {
         if (!num) continue;
         const photo = (row[`vehicle${i}_photo`] || '').trim();
 
-        const first = num.charAt(0).toUpperCase();
-        let type = 'normal';
-        if (first === 'A') type = 'emergency';
-        else if (first === 'R') type = 'rescue';
-        else if (first === 'P') type = 'pomp';
-        else if (first === 'C') type = 'chemical';
-        else if (first === 'S') type = 'support';
-        else if (first === 'Y') type = 'yd';
-        else if (first === 'T') type = 'track';
-        else if (/^\d{2}-FD/.test(num)) type = 'firedept';
-
-        // 写真URLをdata-photoに埋め込む
         vehicles.push(
-          `<span class="vehicle-badge" data-photo="${photo}" data-type="${type}">${num}</span>`
+          `<span class="vehicle-badge" data-photo="${photo}">${num}</span>`
         );
       }
 
@@ -70,24 +84,21 @@ Papa.parse(sheetUrl, {
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:4px 0;">${row.address}<br><strong>配置車両</strong></p>
           <div class="vehicle-badge-box">${vehicleList}</div>
-          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
-          ${row.desc  ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
 
-      const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
+      const marker = L.marker([+row.lat, +row.lng], { icon: iconChoice })
         .addTo(map)
         .bindPopup(popupHtml);
 
-      // ★ ポップアップが開いたときにクリックイベントを設定
-      marker.on('popupopen', function(e) {
-        const badges = document.querySelectorAll('.vehicle-badge');
-        badges.forEach(b => {
-          b.addEventListener('click', function() {
-            const photo = this.dataset.photo;
-            if (!photo) return;
-            document.getElementById('modalImg').src = "photo/" + photo;
-            document.getElementById('photoModal').style.display = "flex";
+      // ポップアップが開いたときにクリックイベントを設定
+      marker.on('popupopen', function() {
+        document.querySelectorAll('.vehicle-badge').forEach(badge => {
+          badge.addEventListener('click', function() {
+            const p = this.dataset.photo;
+            if (!p) return;
+            document.getElementById('modalImg').src = 'photo/' + p;
+            document.getElementById('photoModal').style.display = 'flex';
           });
         });
       });
@@ -95,17 +106,16 @@ Papa.parse(sheetUrl, {
   }
 });
 
-// モーダルを閉じる処理
+// モーダルクリックで閉じる
 document.getElementById('photoModal').addEventListener('click', function() {
   this.style.display = 'none';
 });
 </script>
-  
-  <!-- ▼ モーダルは body の最後に置く -->
-  <div id="photoModal">
-    <img id="modalImg" src="" alt="vehicle photo">
-  </div>  
-  
-  
+
+<!-- ▼ モーダルは body の最後に置く -->
+<div id="photoModal">
+  <img id="modalImg" src="" alt="vehicle photo">
+</div>
+
 </body>
 </html>
