@@ -3,20 +3,24 @@
 <head>
 <meta charset="utf-8">
 <title>東京消防庁マップ</title>
-<link rel="stylesheet" href="style.css"/>    
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css"/>  
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
   body { margin:0; padding:0; }
   #map { height:90vh; width:100%; }
-
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁_1802</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁_1733</h1>
 <div id="map"></div>
 
+<!-- モーダル -->
+<div id="photoModal">
+  <img id="modalImg" src="" alt="vehicle photo">
+</div>  
+  
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
 
@@ -38,16 +42,33 @@ Papa.parse(sheetUrl, {
   complete: function(results) {
     results.data.forEach(row => {
       if (!row.lat || !row.lng) return;
+
       const iconChoice = icons[row.icon] || icons.red;
 
+      // ▼ 車両バッジ作成（ここで data-photo を埋め込む）
       const vehicles = [];
       for (let i = 1; i <= 20; i++) {
         const num = (row[`vehicle${i}`] || '').trim();
         if (!num) continue;
+
+        // 対応する写真列を読む
         const photo = (row[`vehicle${i}_photo`] || '').trim();
 
+        // タイプ判定
+        const first = num.charAt(0).toUpperCase();
+        let type = 'normal';
+        if (first === 'A') type = 'emergency';
+        else if (first === 'R') type = 'rescue';
+        else if (first === 'P') type = 'pomp';
+        else if (first === 'C') type = 'chemical';
+        else if (first === 'S') type = 'support';
+        else if (first === 'Y') type = 'yd';
+        else if (first === 'T') type = 'track';
+        else if (/^\d{2}-FD/.test(num)) type = 'firedept';
+
+        // ここで data-photo を設定
         vehicles.push(
-          `<span class="vehicle-badge" data-photo="${photo}">${num}</span>`
+          `<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`
         );
       }
 
@@ -56,40 +77,24 @@ Papa.parse(sheetUrl, {
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
-          <p style="margin:4px 0;">${row.address}<br><strong>配置車両</strong></p>
+          <p style="margin:4px 0;">
+            ${row.address}<br>
+            <strong>配置車両</strong>
+          </p>
           <div class="vehicle-badge-box">${vehicleList}</div>
+          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
+          ${row.desc  ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
 
-      const marker = L.marker([+row.lat, +row.lng], { icon: iconChoice })
+      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
         .addTo(map)
         .bindPopup(popupHtml);
-
-      // ポップアップが開いたときにクリックイベントを設定
-      marker.on('popupopen', function() {
-        document.querySelectorAll('.vehicle-badge').forEach(badge => {
-          badge.addEventListener('click', function() {
-            const p = this.dataset.photo;
-            if (!p) return;
-            document.getElementById('modalImg').src = 'photo/' + p;
-            document.getElementById('photoModal').style.display = 'flex';
-          });
-        });
-      });
     });
   }
 });
 
-// モーダルクリックで閉じる
-document.getElementById('photoModal').addEventListener('click', function() {
-  this.style.display = 'none';
-});
 </script>
-
-<!-- ▼ モーダルは body の最後に置く -->
-<div id="photoModal">
-  <img id="modalImg" src="" alt="vehicle photo">
-</div>
 
 </body>
 </html>
