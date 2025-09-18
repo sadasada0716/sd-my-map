@@ -35,7 +35,17 @@
   background:#f57c00;   /* オレンジ */
 }
 
+/* ポンプ車両 */
+.vehicle-badge[data-type="pomp"] {
+  background:#4caf50;   /* 青 */
+}
+
+/* 化学車両 */
+.vehicle-badge[data-type="chemical"] {
+  background:#00cc33;   /* 緑 */
+}
+
 /* ポンプ車 */
 .vehicle-badge[data-type="firedept"] {
-  background:#4caf50;   /* 青 */
+  background:#666666;   /* 灰色 */
 }

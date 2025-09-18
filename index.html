@@ -56,8 +56,10 @@ const vehicles = [];
 
   // --- タイプ判定 ---
   let type = 'normal'; // デフォルト色
-  if (num.startsWith('E')) type = 'emergency';
+  if (num.startsWith('A')) type = 'emergency';
   else if (num.includes('R')) type = 'rescue';
+  else if (num.includes('P')) type = 'pomp';
+  else if (num.includes('C')) type = 'chemical';
   else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
   // バッジHTMLを作成
