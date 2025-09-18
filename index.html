@@ -13,7 +13,7 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁_1817</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁_1824</h1>
 <div id="map"></div>
 
 <script>
@@ -81,27 +81,24 @@ Papa.parse(sheetUrl, {
           ${row.desc  ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
-
-      L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
-        .addTo(map)
-        .bindPopup(popupHtml);
-      
+    
       const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
-  .addTo(map)
-  .bindPopup(popupHtml);
+      .addTo(map)
+      .bindPopup(popupHtml);
       
       // ★ ポップアップが開いたときにクリックイベントを設定
       marker.on('popupopen', function(e) {
-        const badges = document.querySelectorAll('.vehicle-badge');
-        badges.forEach(b => {
-          b.addEventListener('click', function() {
-            const photo = this.dataset.photo;
-            if (!photo) return;
-            document.getElementById('modalImg').src = "photo/" + photo;
-            document.getElementById('photoModal').style.display = "flex";
-          });
-        });
-      });
+  const badges = e.popup.getElement().querySelectorAll('.vehicle-badge');
+  badges.forEach(b => {
+    b.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      const photo = this.dataset.photo;
+      if (!photo) return;
+      document.getElementById('modalImg').src = "photo/" + photo;
+      document.getElementById('photoModal').style.display = "flex";
+    });
+  });
+});
     });
   }
 });
