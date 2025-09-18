@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防署mapsss</h1>
+<h1 style="text-align:center;margin:10px;">東京消防署mapssp</h1>
 <div id="map"></div>
 
 <script>
@@ -54,7 +54,7 @@ Papa.parse(sheetUrl, {
             <strong>住所:</strong> ${row.address}<br>
             <strong>:</strong> ${row.phone || '―'}
           </p>
-          ${row.photo ? `<img src="${row.photo}" style="width:100%;border-radius:8px;">` : ''}
+          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
