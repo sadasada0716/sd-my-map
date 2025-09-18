@@ -66,6 +66,7 @@ Papa.parse(sheetUrl, {
           <p style="margin:4px 0;">
             <strong>住所:</strong> ${row.address}<br>
             <strong>車両ナンバー</strong>
+            ${vehicleList}
           </p>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
