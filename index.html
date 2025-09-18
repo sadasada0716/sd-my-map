@@ -25,7 +25,8 @@ const redIcon  = L.icon({ iconUrl:'icons/red.png',  iconSize:[32,32], iconAnchor
 const blueIcon = L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });
 const greenIcon= L.icon({ iconUrl:'icons/green.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
 const orangeIcon= L.icon({ iconUrl:'icons/orange.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
-
+const hqrIcon= L.icon({ iconUrl:'icons/hqr.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
+const hprIcon= L.icon({ iconUrl:'icons/hpr.png',iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] });  
   
 // ▼ CSV読み込み
 Papa.parse(sheetUrl, {
@@ -42,6 +43,8 @@ Papa.parse(sheetUrl, {
       if (row.icon === "blue")  iconChoice = blueIcon;
       if (row.icon === "green") iconChoice = greenIcon;
       if (row.icon === "orange") iconChoice = orangeIcon;
+      if (row.icon === "hqr") iconChoice = hqrIcon;
+      if (row.icon === "hpr") iconChoice = hprIcon;
 
 // --- ポップアップHTML ---
       const popupHtml = `
@@ -49,7 +52,7 @@ Papa.parse(sheetUrl, {
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:4px 0;">
             <strong>住所:</strong> ${row.address}<br>
-            <strong>電話:</strong> ${row.phone || '―'}
+            <strong>:</strong> ${row.phone || '―'}
           </p>
           ${row.photo ? `<img src="${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
