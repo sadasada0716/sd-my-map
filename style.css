@@ -37,7 +37,7 @@
 
 /* ポンプ車両 */
 .vehicle-badge[data-type="pomp"] {
-  background:#4caf50;   /* 青 */
+  background:#0033ff;   /* 青 */
 }
 
 /* 化学車両 */
