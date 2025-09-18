@@ -4,17 +4,47 @@
 <meta charset="utf-8">
 <title>東京消防庁マップ</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="style.css"/>  
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
   body { margin:0; padding:0; }
   #map { height:90vh; width:100%; }
+  /* モーダルスタイル */
+  #photoModal {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+  }
+  #photoModal img {
+    max-width:90%;
+    max-height:90%;
+    border:4px solid #fff;
+    border-radius:8px;
+  }
+  .vehicle-badge {
+    display:inline-block;
+    padding:2px 6px;
+    margin:2px;
+    background:#eee;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:12px;
+  }
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁_1824</h1>
+<h1 style="text-align:center;margin:10px;">東京消防庁マップ</h1>
 <div id="map"></div>
+
+<!-- モーダル -->
+<div id="photoModal">
+  <img id="modalImg" src="" alt="vehicle photo">
+</div>
 
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
@@ -31,6 +61,7 @@ const icons = {
   hpr:    L.icon({ iconUrl:'icons/hpr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
 };
 
+// CSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
   header: true,
@@ -40,16 +71,13 @@ Papa.parse(sheetUrl, {
 
       const iconChoice = icons[row.icon] || icons.red;
 
-      // ▼ 車両バッジ作成（ここで data-photo を埋め込む）
+      // 車両バッジ作成（data-photoを埋め込む）
       const vehicles = [];
       for (let i = 1; i <= 20; i++) {
         const num = (row[`vehicle${i}`] || '').trim();
         if (!num) continue;
-
-        // 対応する写真列を読む
         const photo = (row[`vehicle${i}_photo`] || '').trim();
 
-        // タイプ判定
         const first = num.charAt(0).toUpperCase();
         let type = 'normal';
         if (first === 'A') type = 'emergency';
@@ -61,10 +89,7 @@ Papa.parse(sheetUrl, {
         else if (first === 'T') type = 'track';
         else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
-        // ここで data-photo を設定
-        vehicles.push(
-          `<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`
-        );
+        vehicles.push(`<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`);
       }
 
       const vehicleList = vehicles.length ? vehicles.join(' ') : '<p>車両登録なし</p>';
@@ -72,47 +97,45 @@ Papa.parse(sheetUrl, {
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
-          <p style="margin:4px 0;">
-            ${row.address}<br>
-            <strong>配置車両</strong>
-          </p>
+          <p style="margin:4px 0;">${row.address}<br><strong>配置車両</strong></p>
           <div class="vehicle-badge-box">${vehicleList}</div>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
-          ${row.desc  ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
+          ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
       `;
-    
+
+      // マーカー作成
       const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
-      .addTo(map)
-      .bindPopup(popupHtml);
-      
-      // ★ ポップアップが開いたときにクリックイベントを設定
+        .addTo(map)
+        .bindPopup(popupHtml);
+
+      // ポップアップ内のバッジクリックでモーダル表示
       marker.on('popupopen', function(e) {
-  const badges = e.popup.getElement().querySelectorAll('.vehicle-badge');
-  badges.forEach(b => {
-    b.addEventListener('click', function(ev) {
-      ev.stopPropagation();
-      const photo = this.dataset.photo;
-      if (!photo) return;
-      document.getElementById('modalImg').src = "photo/" + photo;
-      document.getElementById('photoModal').style.display = "flex";
-    });
-  });
-});
+        const badges = e.popup.getElement().querySelectorAll('.vehicle-badge');
+        badges.forEach(b => {
+          b.addEventListener('click', function(ev) {
+            ev.stopPropagation();
+            const photo = this.dataset.photo;
+            if (!photo) return;
+            document.getElementById('modalImg').src = "photo/" + photo;
+            document.getElementById('photoModal').style.display = "flex";
+          });
+        });
+      });
     });
   }
 });
-  
-// モーダルを閉じる処理
+
+// モーダル背景クリックで閉じる
 document.getElementById('photoModal').addEventListener('click', function() {
   this.style.display = 'none';
 });
-  
+
+// モーダル画像クリックは閉じない
+document.getElementById('modalImg').addEventListener('click', function(e){
+  e.stopPropagation();
+});
 </script>
-  
-<!-- モーダル -->
-<div id="photoModal">
-  <img id="modalImg" src="" alt="vehicle photo">
-</div>
+
 </body>
 </html>
