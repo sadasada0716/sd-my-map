@@ -16,11 +16,6 @@
 <h1 style="text-align:center;margin:10px;">東京消防庁_1745</h1>
 <div id="map"></div>
 
-<!-- モーダル -->
-<div id="photoModal">
-  <img id="modalImg" src="" alt="vehicle photo">
-</div>  
-  
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
 
@@ -105,5 +100,12 @@ document.getElementById('photoModal').addEventListener('click', function() {
   this.style.display = 'none';
 });
 </script>
+  
+  <!-- ▼ モーダルは body の最後に置く -->
+  <div id="photoModal">
+    <img id="modalImg" src="" alt="vehicle photo">
+  </div>  
+  
+  
 </body>
 </html>
