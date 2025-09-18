@@ -41,6 +41,7 @@ Papa.parse(sheetUrl, {
       let iconChoice = redIcon; // デフォルト
       if (row.icon === "blue")  iconChoice = blueIcon;
       if (row.icon === "green") iconChoice = greenIcon;
+      if (row.icon === "orange") iconChoice = orangeIcon;
 
 // --- ポップアップHTML ---
       const popupHtml = `
