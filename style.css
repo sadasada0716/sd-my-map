@@ -36,7 +36,7 @@
 }
 
 /* サポート車両 */
-.vehicle-badge[data-type="pomp"] {
+.vehicle-badge[data-type="support"] {
   background:#ff00cc;   /* ピンク */
 }
 
