@@ -35,6 +35,11 @@
   background:#f57c00;   /* オレンジ */
 }
 
+/* サポート車両 */
+.vehicle-badge[data-type="pomp"] {
+  background:#ff00cc;   /* ピンク */
+}
+
 /* ポンプ車両 */
 .vehicle-badge[data-type="pomp"] {
   background:#0033ff;   /* 青 */

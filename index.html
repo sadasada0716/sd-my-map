@@ -60,6 +60,7 @@ const vehicles = [];
   else if (num.includes('R')) type = 'rescue';
   /*else if (num.includes('P')) type = 'pomp';*/
   else if (num.includes('C')) type = 'chemical';
+  else if (num.includes('S')) type = 'support';
   else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
   // バッジHTMLを作成
