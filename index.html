@@ -54,13 +54,16 @@ const vehicles = [];
   if (!raw || raw.trim() === '') return; // 空欄はスキップ
   const num = raw.trim();
 
+  // --- 頭文字でタイプ判定 ---
+  let type = 'normal'; // デフォルト
+  const firstChar = num.charAt(0).toUpperCase(); // 大文字に統一
+  
   // --- タイプ判定 ---
-  let type = 'normal'; // デフォルト色
-  if (num.startsWith('A')) type = 'emergency';
-  else if (num.includes('R')) type = 'rescue';
-  else if (num.includes('P')) type = 'pomp';
-  else if (num.includes('C')) type = 'chemical';
-  else if (num.includes('S')) type = 'support';
+  if (firstChar === 'A') type = 'emergency';
+  else if (firstChar === 'R') type = 'rescue';
+  else if (firstChar === 'P') type = 'pomp';
+  else if (firstChar === 'C') type = 'chemical';
+  else if (firstChar === 'S') type = 'support';
   else if (/^\d{2}-FD/.test(num)) type = 'firedept';
 
   // バッジHTMLを作成
