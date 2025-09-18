@@ -57,7 +57,7 @@ Papa.parse(sheetUrl, {
 
       // 🔹 HTMLリスト化
       const vehicleList = vehicles.length
-        ? '<ul>' + vehicles.map(v => `<li>${v}</li>`).join('') + '</ul>'
+        ? vehicles.map(v => `<span class="vehicle-badge">${v}</span>`).join(' ')
         : '<p>車両登録なし</p>';
       
       // --- ポップアップHTML ---
@@ -69,6 +69,7 @@ Papa.parse(sheetUrl, {
             <strong>配置車両</strong>
             ${vehicleList}
           </p>
+          <div class="vehicle-badge-box">${vehicleList}</div>
           ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
           ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
         </div>
