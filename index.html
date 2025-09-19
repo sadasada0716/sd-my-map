@@ -37,7 +37,7 @@
   .vehicle-badge[data-type="P"] { background:#1976d2; }   /* ポンプ車（P） - ブルー */
   .vehicle-badge[data-type="C"] { background:#4caf50; }   /* 化学車（C） - 緑 */
   .vehicle-badge[data-type="S"] { background:#9c27b0; }   /* 支援車（S） - パープル */
-  .vehicle-badge[data-type="Y"] { background:#ff5722; }   /* 指令車（Y） - 深オレンジ */
+  .vehicle-badge[data-type="Y"] { background:#666666; }   /* 指揮車（Y） - 灰色 */
   .vehicle-badge[data-type="T"] { background:#607d8b; }   /* 特殊車（T） - ブラウン系 */
   .vehicle-badge[data-type="L"] { background:#ff9800; }   /* はしご（T） - うすオレンジ系 */
   .vehicle-badge[data-type="FD"]{ background:#212121; }   /* 消防局(FD) - 黒 */
@@ -69,6 +69,7 @@
 
 <!-- 絞り込みUI（必要ならそのまま） -->
 <div id="controls">
+  <button data-type="all">すべて</button>
   <label><input type="checkbox" class="filter" value="R" checked>救助車(R)</label>
   <label><input type="checkbox" class="filter" value="A" checked>救急車(A)</label>
   <label><input type="checkbox" class="filter" value="P" checked>ポンプ車(P)</label>
@@ -77,6 +78,8 @@
   <label><input type="checkbox" class="filter" value="T" checked>特殊車(T)</label>
   <label><input type="checkbox" class="filter" value="L" checked>はしご車(L)</label>
   <label><input type="checkbox" class="filter" value="Y" checked>指令車(Y)</label>
+  <button data-type="none">はずす</button>
+
 </div>
 
 <div id="map"></div>
@@ -155,17 +158,25 @@ Papa.parse(sheetUrl, {
   }
 });
 
-// 絞り込みUI
-document.querySelectorAll('.filter').forEach(cb => cb.addEventListener('change', applyFilter));
-function applyFilter(){
-  const selected = Array.from(document.querySelectorAll('.filter:checked')).map(cb=>cb.value);
-  allMarkers.forEach(m=>{
-    const show = [...m.vehicleTypes].some(t => selected.includes(t));
-    if (show) { if (!map.hasLayer(m)) m.addTo(map); }
-    else     { if (map.hasLayer(m)) map.removeLayer(m); }
+// ====== 絞り込み機能 ======
+document.querySelectorAll('.filter-bar button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const type=btn.dataset.type;
+    if(type==='all'){
+      allMarkers.forEach(m=>m.marker.addTo(map));
+    }else if(type==='none'){
+      allMarkers.forEach(m=>map.removeLayer(m.marker));
+    }else{
+      allMarkers.forEach(m=>{
+        if(m.types.includes(type)){
+          m.marker.addTo(map);
+        }else{
+          map.removeLayer(m.marker);
+        }
+      });
+    }
   });
-}
-
+});
 // モーダル操作
 document.getElementById('photoModal').addEventListener('click', ()=> {
   document.getElementById('photoModal').style.display = 'none';
