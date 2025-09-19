@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>東京消防庁マップ（車両色分け＋フィルタ選択表示）</title>
+<title>東京消防庁マップ（色分け＋絞り込み＋icon列対応）</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -11,45 +11,18 @@
   h1 { text-align:center; margin:8px; }
   #map { height:85vh; }
 
-  /* === 絞り込みボタン === */
-  .filter-bar {
-    padding:8px 12px;
-    background:#f3f3f3;
-    border-bottom:1px solid #ccc;
-    text-align:center;
-  }
+  .filter-bar { padding:8px 12px; background:#f3f3f3; border-bottom:1px solid #ccc; text-align:center; }
   .filter-bar button {
-    margin:4px;
-    padding:6px 10px;
-    border:1px solid #888;
-    border-radius:4px;
-    background:#fff;
-    cursor:pointer;
-    transition: all 0.2s;
+    margin:4px; padding:6px 10px; border:1px solid #888; border-radius:4px;
+    background:#fff; cursor:pointer; transition: all 0.2s;
   }
-  .filter-bar button:hover {
-    background:#eee;
-  }
-  /* 選択中を目立たせる */
-  .filter-bar button.active {
-    background:#0078ff;
-    color:#fff;
-    border-color:#0057c2;
-    box-shadow:0 0 4px rgba(0,0,0,0.3) inset;
-  }
+  .filter-bar button:hover { background:#eee; }
+  .filter-bar button.active { background:#0078ff; color:#fff; border-color:#0057c2; box-shadow:0 0 4px rgba(0,0,0,0.3) inset; }
 
-  /* 車両バッジ */
   .vehicle-badge {
-    display:inline-block;
-    padding:4px 8px;
-    margin:4px 4px 2px 0;
-    border-radius:14px;
-    cursor:pointer;
-    font-size:12px;
-    color:#fff;
-    font-weight:600;
-    box-shadow:0 1px 2px rgba(0,0,0,0.2);
-    user-select:none;
+    display:inline-block; padding:4px 8px; margin:4px 4px 2px 0; border-radius:14px;
+    cursor:pointer; font-size:12px; color:#fff; font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,0.2); user-select:none;
   }
   .vehicle-badge:active { transform: translateY(1px); }
 
@@ -66,25 +39,20 @@
 
   /* モーダル */
   #photoModal {
-    display:none;
-    position:fixed; top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.6);
-    justify-content:center; align-items:center;
-    z-index:1000;
+    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;
   }
   #photoModal img {
-    max-width:90%; max-height:90%;
-    border:4px solid #fff; border-radius:8px;
+    max-width:90%; max-height:90%; border:4px solid #fff; border-radius:8px;
     box-shadow:0 6px 24px rgba(0,0,0,0.6);
   }
 </style>
 </head>
 <body>
-<h1>東京消防庁マップ（車両色分け＋絞り込み）</h1>
+<h1>東京消防庁マップ（色分け＋絞り込み＋icon列対応）</h1>
 
 <div class="filter-bar">
-  <button data-type="all"  class="active">すべて</button>
+  <button data-type="all" class="active">すべて</button>
   <button data-type="none">はずす</button>
   <button data-type="A">救急(A)</button>
   <button data-type="R">救助(R)</button>
@@ -98,7 +66,6 @@
 </div>
 
 <div id="map"></div>
-
 <div id="photoModal"><img id="modalImg" src="" alt="photo"></div>
 
 <script>
@@ -106,72 +73,80 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyB
 const map = L.map('map').setView([35.68,139.76],11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+const icons = {
+  red:    L.icon({ iconUrl:'icons/red.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  blue:   L.icon({ iconUrl:'icons/blue.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  green:  L.icon({ iconUrl:'icons/green.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  orange: L.icon({ iconUrl:'icons/orange.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  hqr:    L.icon({ iconUrl:'icons/hqr.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  hpr:    L.icon({ iconUrl:'icons/hpr.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
+  default:L.icon({ iconUrl:'icons/red.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
+};
+
 let allMarkers = [];
 
 Papa.parse(sheetUrl, {
-  download: true,
-  header: true,
-  complete: function(results) {
-    results.data.forEach(row => {
-      if (!row.lat || !row.lng) return;
+  download:true,
+  header:true,
+  complete:function(results){
+    results.data.forEach(row=>{
+      if(!row.lat||!row.lng) return;
+
+      // icon列を優先
+      const iconChoice = icons[row.icon] || icons.default;
 
       const vehicles = [];
       const typesInStation = new Set();
-      for (let i=1; i<=20; i++) {
-        const num = (row[`vehicle${i}`] || '').trim();
-        if (!num) continue;
-        const photo = (row[`vehicle${i}_photo`] || '').trim();
+      for(let i=1;i<=20;i++){
+        const num = (row[`vehicle${i}`]||'').trim();
+        if(!num) continue;
+        const photo = (row[`vehicle${i}_photo`]||'').trim();
         let type = num.charAt(0).toUpperCase();
-        if (/^\d{2}-FD/.test(num)) type = 'FD';
+        if(/^\d{2}-FD/.test(num)) type='FD';
         typesInStation.add(type);
-        vehicles.push(`<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`);
+        vehicles.push(`<span class="vehicle-badge" data-type="${type}" ${photo?`data-photo="${photo}"`:''}>${num}</span>`);
       }
 
       const popupHtml = `
         <div style="width:220px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
-          <p style="margin:6px 0 4px;">${row.address}<br><strong>配置車両</strong></p>
-          <div>${vehicles.join(' ') || '車両登録なし'}</div>
+          <p style="margin:6px 0 4px;">${row.address||''}<br><strong>配置車両</strong></p>
+          <div>${vehicles.join(' ')||'車両登録なし'}</div>
         </div>
       `;
 
-      const marker = L.marker([+row.lat, +row.lng]).bindPopup(popupHtml).addTo(map);
+      const marker = L.marker([+row.lat,+row.lng], {icon: iconChoice})
+                      .bindPopup(popupHtml)
+                      .addTo(map);
       marker.vehicleTypes = typesInStation;
+      allMarkers.push(marker);
 
-      marker.on('popupopen', e => {
-        e.popup.getElement().querySelectorAll('.vehicle-badge').forEach(b => {
-          b.addEventListener('click', ev => {
+      marker.on('popupopen', e=>{
+        e.popup.getElement().querySelectorAll('.vehicle-badge[data-photo]').forEach(b=>{
+          b.addEventListener('click', ev=>{
             ev.stopPropagation();
-            const p = b.dataset.photo;
-            if (p) {
-              document.getElementById('modalImg').src = "photo/" + p;
-              document.getElementById('photoModal').style.display = 'flex';
-            }
+            document.getElementById('modalImg').src = "photo/"+b.dataset.photo;
+            document.getElementById('photoModal').style.display='flex';
           });
         });
       });
-
-      allMarkers.push(marker);
     });
   }
 });
 
-// ===== フィルタ処理＋アクティブ表示 =====
+// ===== フィルタ処理 =====
 document.querySelectorAll('.filter-bar button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    // active切り替え
+  btn.addEventListener('click',()=>{
     document.querySelectorAll('.filter-bar button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
 
     const type = btn.dataset.type;
-    if (type === 'all') {
-      allMarkers.forEach(m => m.addTo(map));
-    } else if (type === 'none') {
-      allMarkers.forEach(m => map.removeLayer(m));
-    } else {
-      allMarkers.forEach(m => {
-        const match = m.vehicleTypes.has(type);
-        if (match) { m.addTo(map); } else { map.removeLayer(m); }
+    if(type==='all'){ allMarkers.forEach(m=>m.addTo(map)); }
+    else if(type==='none'){ allMarkers.forEach(m=>map.removeLayer(m)); }
+    else{
+      allMarkers.forEach(m=>{
+        if(m.vehicleTypes.has(type)) m.addTo(map);
+        else map.removeLayer(m);
       });
     }
   });
@@ -181,7 +156,8 @@ document.querySelectorAll('.filter-bar button').forEach(btn=>{
 document.getElementById('photoModal').addEventListener('click', ()=> {
   document.getElementById('photoModal').style.display = 'none';
 });
-document.getElementById('modalImg').addEventListener('click', e => e.stopPropagation());
+document.getElementById('modalImg').addEventListener('click', e=>e.stopPropagation());
+
 </script>
 </body>
 </html>
