@@ -2,36 +2,60 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>東京消防庁マップ</title>
+<title>東京消防庁マップ 絞り込み付</title>
 <link rel="stylesheet" href="style.css"/>  
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
-  body { margin:0; padding:0; }
-  #map { height:90vh; width:100%; }
-  /* モーダルスタイル */
-  #photoModal {
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background: rgba(0,0,0,0.6);
-    justify-content:center;
-    align-items:center;
-    z-index:1000;
-  }
-  #photoModal img {
-    max-width:90%;
-    max-height:90%;
-    border:4px solid #fff;
-    border-radius:8px;
-  }
-
+body { margin:0; padding:0; font-family:sans-serif; }
+#controls {
+  padding:8px 12px;
+  background:#f5f5f5;
+  border-bottom:1px solid #ccc;
+}
+#map { height: 88vh; }
+.vehicle-badge {
+  display:inline-block;
+  padding:2px 6px;
+  margin:2px;
+  background:#eee;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:12px;
+}
+#photoModal {
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+#photoModal img {
+  max-width:90%; max-height:90%;
+  border:4px solid #fff;
+  border-radius:8px;
+}
 </style>
 </head>
 <body>
-<h1 style="text-align:center;margin:10px;">東京消防庁マップ12</h1>
+<h1 style="margin:8px; text-align:center;">東京消防庁マップ（車両絞り込み）</h1>
+
+<!-- ▼ 絞り込みUI -->
+<div id="controls">
+  <label><input type="checkbox" class="filter" value="R" checked>救助車(R)</label>
+  <label><input type="checkbox" class="filter" value="A" checked>救急車(A)</label>
+  <label><input type="checkbox" class="filter" value="P" checked>ポンプ車(P)</label>
+  <label><input type="checkbox" class="filter" value="C" checked>化学車(C)</label>
+  <label><input type="checkbox" class="filter" value="S" checked>支援車(S)</label>
+  <label><input type="checkbox" class="filter" value="T" checked>特殊車(T)</label>
+  <label><input type="checkbox" class="filter" value="Y" checked>指揮車(Y)</label>
+  <label><input type="checkbox" class="filter" value="FD" checked>その他</label>
+</div>
+
 <div id="map"></div>
 
 <!-- モーダル -->
@@ -54,6 +78,8 @@ const icons = {
   hpr:    L.icon({ iconUrl:'icons/hpr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
 };
 
+let allMarkers = []; // 全マーカーを格納
+
 // CSV読み込み
 Papa.parse(sheetUrl, {
   download: true,
@@ -64,71 +90,78 @@ Papa.parse(sheetUrl, {
 
       const iconChoice = icons[row.icon] || icons.red;
 
-      // 車両バッジ作成（data-photoを埋め込む）
+      // 車両リスト + タイプ判定
       const vehicles = [];
-      for (let i = 1; i <= 20; i++) {
+      const typesInStation = new Set(); // この署にある車両の頭文字タイプを保存
+      for (let i=1;i<=20;i++){
         const num = (row[`vehicle${i}`] || '').trim();
         if (!num) continue;
         const photo = (row[`vehicle${i}_photo`] || '').trim();
-
         const first = num.charAt(0).toUpperCase();
-        let type = 'normal';
-        if (first === 'A') type = 'emergency';
-        else if (first === 'R') type = 'rescue';
-        else if (first === 'P') type = 'pomp';
-        else if (first === 'C') type = 'chemical';
-        else if (first === 'S') type = 'support';
-        else if (first === 'Y') type = 'yd';
-        else if (first === 'T') type = 'track';
-        else if (/^\d{2}-FD/.test(num)) type = 'firedept';
+        let type = first;
+        if (/^\d{2}-FD/.test(num)) type = 'FD';
+        typesInStation.add(type);
 
         vehicles.push(`<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`);
       }
 
-      const vehicleList = vehicles.length ? vehicles.join(' ') : '<p>車両登録なし</p>';
-
       const popupHtml = `
         <div style="width:200px">
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
-          <p style="margin:4px 0;">${row.address}<br><strong>配置車両</strong></p>
-          <div class="vehicle-badge-box">${vehicleList}</div>
-          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;">` : ''}
-          ${row.desc ? `<p style="margin-top:6px;">${row.desc}</p>` : ''}
+          <p>${row.address}<br><strong>配置車両</strong></p>
+          <div>${vehicles.join(' ') || '車両登録なし'}</div>
+          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;margin-top:4px;">` : ''}
         </div>
       `;
 
-      // マーカー作成
       const marker = L.marker([parseFloat(row.lat), parseFloat(row.lng)], { icon: iconChoice })
-        .addTo(map)
         .bindPopup(popupHtml);
 
-      // ポップアップ内のバッジクリックでモーダル表示
-      marker.on('popupopen', function(e) {
-        const badges = e.popup.getElement().querySelectorAll('.vehicle-badge');
-        badges.forEach(b => {
-          b.addEventListener('click', function(ev) {
+      marker.vehicleTypes = typesInStation; // このマーカーにタイプを記録
+      marker.addTo(map);
+
+      marker.on('popupopen', e => {
+        e.popup.getElement().querySelectorAll('.vehicle-badge').forEach(b => {
+          b.addEventListener('click', ev => {
             ev.stopPropagation();
-            const photo = this.dataset.photo;
-            if (!photo) return;
-            document.getElementById('modalImg').src = "photo/" + photo;
-            document.getElementById('photoModal').style.display = "flex";
+            const p = b.dataset.photo;
+            if (p) {
+              document.getElementById('modalImg').src = "photo/" + p;
+              document.getElementById('photoModal').style.display = "flex";
+            }
           });
         });
       });
+
+      allMarkers.push(marker);
     });
   }
 });
 
-// モーダル背景クリックで閉じる
-document.getElementById('photoModal').addEventListener('click', function() {
-  this.style.display = 'none';
+// ▼ 絞り込み機能
+document.querySelectorAll('.filter').forEach(cb=>{
+  cb.addEventListener('change', applyFilter);
 });
 
-// モーダル画像クリックは閉じない
-document.getElementById('modalImg').addEventListener('click', function(e){
-  e.stopPropagation();
+function applyFilter() {
+  const selected = Array.from(document.querySelectorAll('.filter:checked'))
+                        .map(cb => cb.value);
+  allMarkers.forEach(m => {
+    // 署の車両タイプと選択されたタイプが1つでも一致すれば表示
+    const show = [...m.vehicleTypes].some(t => selected.includes(t));
+    if (show) {
+      if (!map.hasLayer(m)) m.addTo(map);
+    } else {
+      if (map.hasLayer(m)) map.removeLayer(m);
+    }
+  });
+}
+
+// モーダル閉じる
+document.getElementById('photoModal').addEventListener('click', () => {
+  document.getElementById('photoModal').style.display = 'none';
 });
+document.getElementById('modalImg').addEventListener('click', e => e.stopPropagation());
 </script>
-
 </body>
 </html>
