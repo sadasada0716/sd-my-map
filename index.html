@@ -33,12 +33,13 @@
 
   /* 先頭文字別の色指定（必要に応じて色変更してください） */
   .vehicle-badge[data-type="A"] { background:#e53935; }   /* 救急車（A） - 赤 */
-  .vehicle-badge[data-type="R"] { background:#ff9800; }   /* 救助車（R） - オレンジ */
+  .vehicle-badge[data-type="R"] { background:#ff5722; }   /* 救助車（R） - オレンジ */
   .vehicle-badge[data-type="P"] { background:#1976d2; }   /* ポンプ車（P） - ブルー */
   .vehicle-badge[data-type="C"] { background:#4caf50; }   /* 化学車（C） - 緑 */
   .vehicle-badge[data-type="S"] { background:#9c27b0; }   /* 支援車（S） - パープル */
   .vehicle-badge[data-type="Y"] { background:#ff5722; }   /* 指令車（Y） - 深オレンジ */
-  .vehicle-badge[data-type="T"] { background:#607d8b; }   /* 特殊車（T） - グレー系 */
+  .vehicle-badge[data-type="T"] { background:#607d8b; }   /* 特殊車（T） - ブラウン系 */
+  .vehicle-badge[data-type="L"] { background:#ff9800; }   /* はしご（T） - うすオレンジ系 */
   .vehicle-badge[data-type="FD"]{ background:#212121; }   /* 消防局(FD) - 黒 */
 
   /* もし data-type が単一文字でない可能性があるなら汎用指定も */
@@ -64,7 +65,7 @@
 </style>
 </head>
 <body>
-<h1>東京消防庁マップ（車両色分け）</h1>
+<h1>東京消防庁マップ（車両色分け）はしご追加</h1>
 
 <!-- 絞り込みUI（必要ならそのまま） -->
 <div id="controls">
@@ -74,8 +75,8 @@
   <label><input type="checkbox" class="filter" value="C" checked>化学車(C)</label>
   <label><input type="checkbox" class="filter" value="S" checked>支援車(S)</label>
   <label><input type="checkbox" class="filter" value="T" checked>特殊車(T)</label>
+  <label><input type="checkbox" class="filter" value="L" checked>はしご車(L)</label>
   <label><input type="checkbox" class="filter" value="Y" checked>指令車(Y)</label>
-  <label><input type="checkbox" class="filter" value="FD" checked>消防局(FD)</label>
 </div>
 
 <div id="map"></div>
