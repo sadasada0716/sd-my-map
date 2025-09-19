@@ -2,21 +2,40 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>東京消防庁マップ（色分け＋絞り込み）</title>
+<title>東京消防庁マップ（車両色分け＋フィルタ選択表示）</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
   body { margin:0; padding:0; font-family:sans-serif; }
   h1 { text-align:center; margin:8px; }
-  #controls { padding:8px 12px; background:#f3f3f3; border-bottom:1px solid #ccc; text-align:center; }
   #map { height:85vh; }
 
-  /* フィルターボタン */
-  .filter-bar { text-align:center; padding:6px; background:#eee; }
+  /* === 絞り込みボタン === */
+  .filter-bar {
+    padding:8px 12px;
+    background:#f3f3f3;
+    border-bottom:1px solid #ccc;
+    text-align:center;
+  }
   .filter-bar button {
-    margin:4px; padding:6px 10px; cursor:pointer;
-    border:1px solid #888; border-radius:6px; background:#fff;
+    margin:4px;
+    padding:6px 10px;
+    border:1px solid #888;
+    border-radius:4px;
+    background:#fff;
+    cursor:pointer;
+    transition: all 0.2s;
+  }
+  .filter-bar button:hover {
+    background:#eee;
+  }
+  /* 選択中を目立たせる */
+  .filter-bar button.active {
+    background:#0078ff;
+    color:#fff;
+    border-color:#0057c2;
+    box-shadow:0 0 4px rgba(0,0,0,0.3) inset;
   }
 
   /* 車両バッジ */
@@ -34,16 +53,16 @@
   }
   .vehicle-badge:active { transform: translateY(1px); }
 
-  /* 先頭文字ごとの色 */
-  .vehicle-badge[data-type="A"] { background:#e53935; } /* 救急車 */
-  .vehicle-badge[data-type="R"] { background:#ff5722; } /* 救助車 */
-  .vehicle-badge[data-type="P"] { background:#1976d2; } /* ポンプ車 */
-  .vehicle-badge[data-type="C"] { background:#4caf50; } /* 化学車 */
-  .vehicle-badge[data-type="S"] { background:#9c27b0; } /* 支援車 */
-  .vehicle-badge[data-type="Y"] { background:#666666; } /* 指揮車 */
-  .vehicle-badge[data-type="T"] { background:#607d8b; } /* 特殊車 */
-  .vehicle-badge[data-type="L"] { background:#ff9800; } /* はしご車 */
-  .vehicle-badge[data-type="FD"]{ background:#212121; } /* 消防局 */
+  /* 色分け */
+  .vehicle-badge[data-type="A"] { background:#e53935; }   /* 救急車 */
+  .vehicle-badge[data-type="R"] { background:#ff5722; }   /* 救助車 */
+  .vehicle-badge[data-type="P"] { background:#1976d2; }   /* ポンプ車 */
+  .vehicle-badge[data-type="C"] { background:#4caf50; }   /* 化学車 */
+  .vehicle-badge[data-type="S"] { background:#9c27b0; }   /* 支援車 */
+  .vehicle-badge[data-type="Y"] { background:#666666; }   /* 指揮車 */
+  .vehicle-badge[data-type="T"] { background:#607d8b; }   /* 特殊車 */
+  .vehicle-badge[data-type="L"] { background:#ff9800; }   /* はしご車 */
+  .vehicle-badge[data-type="FD"]{ background:#212121; }   /* 消防局 */
 
   /* モーダル */
   #photoModal {
@@ -62,11 +81,10 @@
 </style>
 </head>
 <body>
-<h1>東京消防庁マップ（色分け＋絞り込み）</h1>
+<h1>東京消防庁マップ（車両色分け＋絞り込み）</h1>
 
-<!-- 絞り込みUI -->
 <div class="filter-bar">
-  <button data-type="all">すべて</button>
+  <button data-type="all"  class="active">すべて</button>
   <button data-type="none">はずす</button>
   <button data-type="A">救急(A)</button>
   <button data-type="R">救助(R)</button>
@@ -76,29 +94,19 @@
   <button data-type="Y">指揮(Y)</button>
   <button data-type="T">特殊(T)</button>
   <button data-type="L">はしご(L)</button>
+  <button data-type="FD">消防局(FD)</button>
 </div>
 
 <div id="map"></div>
 
-<!-- モーダル -->
-<div id="photoModal"><img id="modalImg" src="" alt="vehicle photo"></div>
+<div id="photoModal"><img id="modalImg" src="" alt="photo"></div>
 
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTnksYoKQz5NyBwIQUrWeHC9UUgaWFnErJzuBQT36Lrp59gR4Q9fzvGI51EtcoxFJNcJNKE58tv_A_Q/pub?gid=0&single=true&output=csv";
-
 const map = L.map('map').setView([35.68,139.76],11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-const icons = {
-  red:    L.icon({ iconUrl:'icons/red.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
-  blue:   L.icon({ iconUrl:'icons/blue.png',   iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
-  green:  L.icon({ iconUrl:'icons/green.png',  iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
-  orange: L.icon({ iconUrl:'icons/orange.png', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
-  hqr:    L.icon({ iconUrl:'icons/hqr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] }),
-  hpr:    L.icon({ iconUrl:'icons/hpr.png',    iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32] })
-};
-
-const allMarkers = [];
+let allMarkers = [];
 
 Papa.parse(sheetUrl, {
   download: true,
@@ -107,20 +115,15 @@ Papa.parse(sheetUrl, {
     results.data.forEach(row => {
       if (!row.lat || !row.lng) return;
 
-      const iconChoice = icons[row.icon] || icons.red;
-
       const vehicles = [];
-      const typesSet = new Set();
-
-      for (let i = 1; i <= 20; i++) {
+      const typesInStation = new Set();
+      for (let i=1; i<=20; i++) {
         const num = (row[`vehicle${i}`] || '').trim();
         if (!num) continue;
-
         const photo = (row[`vehicle${i}_photo`] || '').trim();
         let type = num.charAt(0).toUpperCase();
-        if (/^\d{2}-FD/.test(num)) type = 'FD'; // 消防局
-
-        typesSet.add(type);
+        if (/^\d{2}-FD/.test(num)) type = 'FD';
+        typesInStation.add(type);
         vehicles.push(`<span class="vehicle-badge" data-type="${type}" data-photo="${photo}">${num}</span>`);
       }
 
@@ -129,15 +132,12 @@ Papa.parse(sheetUrl, {
           <h3 style="margin:0;font-size:16px;">${row.name}</h3>
           <p style="margin:6px 0 4px;">${row.address}<br><strong>配置車両</strong></p>
           <div>${vehicles.join(' ') || '車両登録なし'}</div>
-          ${row.photo ? `<img src="photo/${row.photo}" style="width:100%;border-radius:8px;margin-top:6px;">` : ''}
         </div>
       `;
 
-      const marker = L.marker([+row.lat, +row.lng], { icon: iconChoice })
-        .bindPopup(popupHtml)
-        .addTo(map);
+      const marker = L.marker([+row.lat, +row.lng]).bindPopup(popupHtml).addTo(map);
+      marker.vehicleTypes = typesInStation;
 
-      // バッジクリック→モーダル
       marker.on('popupopen', e => {
         e.popup.getElement().querySelectorAll('.vehicle-badge').forEach(b => {
           b.addEventListener('click', ev => {
@@ -151,30 +151,34 @@ Papa.parse(sheetUrl, {
         });
       });
 
-      allMarkers.push({ marker: marker, types: typesSet });
+      allMarkers.push(marker);
     });
   }
 });
 
-// ===== 絞り込み機能 =====
-document.querySelectorAll('.filter-bar button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const t = btn.dataset.type;
-    if (t === 'all') {
-      allMarkers.forEach(m => map.addLayer(m.marker));
-    } else if (t === 'none') {
-      allMarkers.forEach(m => map.removeLayer(m.marker));
+// ===== フィルタ処理＋アクティブ表示 =====
+document.querySelectorAll('.filter-bar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    // active切り替え
+    document.querySelectorAll('.filter-bar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const type = btn.dataset.type;
+    if (type === 'all') {
+      allMarkers.forEach(m => m.addTo(map));
+    } else if (type === 'none') {
+      allMarkers.forEach(m => map.removeLayer(m));
     } else {
       allMarkers.forEach(m => {
-        if (m.types.has(t)) map.addLayer(m.marker);
-        else map.removeLayer(m.marker);
+        const match = m.vehicleTypes.has(type);
+        if (match) { m.addTo(map); } else { map.removeLayer(m); }
       });
     }
   });
 });
 
 // モーダル閉じる
-document.getElementById('photoModal').addEventListener('click', () => {
+document.getElementById('photoModal').addEventListener('click', ()=> {
   document.getElementById('photoModal').style.display = 'none';
 });
 document.getElementById('modalImg').addEventListener('click', e => e.stopPropagation());
